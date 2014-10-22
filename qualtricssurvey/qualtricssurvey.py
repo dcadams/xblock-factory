@@ -3,7 +3,7 @@ This is the core logic for the Qualtrics Survey
 """
 import os
 
-import pkg_resources
+import pkg_resources, cgi
 
 from xblock.core import XBlock
 from xblock.fields import Scope
@@ -16,36 +16,69 @@ class QualtricsSurvey(XBlock):
     Xbock for creating a Qualtrics survey.
     """
 
-    @staticmethod
-    def workbench_scenarios():
-        """
-        Gather scenarios to be displayed in the workbench
-        """
-        return [
-            ('Qualtrics Survey',
-             """<sequence_demo>
-                    <qualtricssurvey />
-                    <qualtricssurvey name="My First XBlock" />
-                </sequence_demo>
-             """),
-        ]
-
-    name = String(
-        default='Qualtrics Survey',
+    display_name = String(
+        default="Qualtrics Survey",
         scope=Scope.settings,
-        help="This is the XBlock's name",
+        help='TODO',
     )
+    survey_id = String(
+        default="1234",
+        scope=Scope.settings,
+        help='TODO',
+    )
+    your_university = String(
+        default="stanford",
+        scope=Scope.settings,
+        help='TODO',
+    )                       
+    link_text = String(
+        default="click here",
+        scope=Scope.settings,
+        help='TODO',
+    )
+    param_name = String(
+        default="a",
+        scope=Scope.settings,
+        help='TODO',
+    )
+
 
     def student_view(self, context=None):
         """
         Build the fragment for the default student view
         """
+
+        display_name = self.display_name
+        survey_id = self.survey_id
+        your_university = self.your_university
+        link_text = self.link_text
+        param_name = self.param_name
+
+        anon_user_id = str(self.xmodule_runtime.anonymous_student_id)
+
+        # %%PARAM%% substitution only works in HTML components
+        # so it has to be done here for USER_ID
+        user_id_string = ""
+        if param_name:
+            user_id_string = "&amp;" + param_name + "=" + anon_user_id
+
+        html_source = self.get_resource_string('view.html')
+        html_source = html_source.format(
+            self=self,
+            display_name=display_name,
+            survey_id=survey_id,
+            your_university=your_university,
+            link_text=link_text,
+            user_id_string= user_id_string,
+        )
+
         fragment = self.build_fragment(
-            path_html='view.html',
+            html_source=html_source,
             path_css='view.less.min.css',
             path_js='view.js.min.js',
             fragment_js='QualtricsSurveyView',
         )
+
         return fragment
 
     def studio_view(self, context=None):
@@ -54,11 +87,40 @@ class QualtricsSurvey(XBlock):
 
         Implementation is optional.
         """
+
+        display_name = self.display_name
+        survey_id = self.survey_id
+        your_university = self.your_university
+        link_text = self.link_text
+        param_name = self.param_name
+
+        # Show the %%USER_ID%% string in the source view
+        user_id_string = ""
+        if param_name:
+            user_id_string = "&amp;" + param_name + "=%%USER_ID%%"
+
+        source_text = """
+        <p>The survey will open in a new browser tab or window.</p>
+        <p><a href="https://""" + your_university + """.qualtrics.com/SE/?SID=""" + survey_id + user_id_string + """" target="_blank">""" + link_text + """</a></p>
+        """
+
+        source_content = cgi.escape(source_text)
+
+        html_source = self.get_resource_string('edit.html')
+        html_source = html_source.format(
+            self=self,
+            display_name=display_name,
+            survey_id=survey_id,
+            your_university=your_university,
+            link_text=link_text,
+            source_content = source_content,
+        )
+
         fragment = self.build_fragment(
-            path_html='edit.html',
+            html_source=html_source,
             path_css='edit.less.min.css',
             path_js='edit.js.min.js',
-            fragment_js='QualtricsSurveyEdit',
+            fragment_js='QualtricsSurveyEdit',            
         )
         return fragment
 
@@ -70,10 +132,17 @@ class QualtricsSurvey(XBlock):
         Returns: the new field values
         """
 
-        # TODO: Add an entry here for each field.
-        self.name = data['name']
+        self.display_name = data['display_name']
+        self.survey_id = data['survey_id']
+        self.your_university = data['your_university']
+        self.link_text = data['link_text']
+        self.param_name = data['param_name']
         return {
-            'name': self.name,
+            'display_name': self.display_name,
+            'survey_id': self.survey_id,
+            'your_university': self.your_university,
+            'link_text': self.link_text,
+            'param_name': self.param_name,
         }
 
     def get_resource_string(self, path):
@@ -93,18 +162,15 @@ class QualtricsSurvey(XBlock):
         return resource_url
 
     def build_fragment(self,
-        path_html='',
+        html_source=None,
         path_css=None,
         path_js=None,
-        fragment_js=None
+        fragment_js=None,
     ):
         """
         Assemble the HTML, JS, and CSS for an XBlock fragment
         """
-        html_source = self.get_resource_string(path_html)
-        html_source = html_source.format(
-            self=self,
-        )
+
         fragment = Fragment(html_source)
         if path_css:
             css_url = self.get_resource_url(path_css)
@@ -114,4 +180,5 @@ class QualtricsSurvey(XBlock):
             fragment.add_javascript_url(js_url)
         if fragment_js:
             fragment.initialize_js(fragment_js)
+
         return fragment

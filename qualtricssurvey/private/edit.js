@@ -21,7 +21,11 @@ function QualtricsSurveyEdit(runtime, element) {
             type: 'POST',
             data: JSON.stringify({
                 // TODO: Add entries here for each field to be saved
-                'name': $('#xblock_qualtricssurvey_name').val(),
+                'display_name': $('#xblock_qualtricssurvey_display_name').val(),
+                'survey_id': $('#xblock_qualtricssurvey_survey_id').val(),
+                'your_university': $('#xblock_qualtricssurvey_your_university').val(),
+                'link_text': $('#xblock_qualtricssurvey_link_text').val(),
+                'param_name': $('#xblock_qualtricssurvey_param_name').val(),
             }),
             success: function buttonSaveOnSuccess() {
                 runtime.notify('save', {
@@ -34,4 +38,10 @@ function QualtricsSurveyEdit(runtime, element) {
         });
         return false;
     });
+    
+    $('#display-source').click(function(e) {
+    	e.preventDefault();
+    	$('#content-source').toggle();
+    });
+    
 }

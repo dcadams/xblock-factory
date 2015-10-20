@@ -39,9 +39,9 @@ function QualtricsSurveyEdit(runtime, element) {
         return false;
     });
     
-    $('#display-source').click(function(e) {
+    $('.xblock_qualtricssurvey_display-source').click(function(e) {
     	e.preventDefault();
-    	$('#content-source').toggle();
+    	$('.content-source-div').toggle();
     });
     
 }

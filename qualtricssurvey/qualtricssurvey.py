@@ -65,14 +65,11 @@ class QualtricsSurvey(XBlock):
             survey_id=survey_id,
             your_university=your_university,
             link_text=link_text,
-            user_id_string= user_id_string,
+            user_id_string=user_id_string,
         )
 
         fragment = self.build_fragment(
             html_source=html_source,
-  #          path_css='view.less.min.css',
-  #          path_js='view.js.min.js',
-  #          fragment_js='QualtricsSurveyView',
         )
 
         return fragment
@@ -80,8 +77,6 @@ class QualtricsSurvey(XBlock):
     def studio_view(self, context=None):
         """
         Build the fragment for the edit/studio view
-
-        Implementation is optional.
         """
 
         display_name = self.display_name
@@ -112,7 +107,7 @@ class QualtricsSurvey(XBlock):
             survey_id=survey_id,
             your_university=your_university,
             link_text=link_text,
-            source_content = source_content,
+            source_content=source_content,
         )
 
         fragment = self.build_fragment(

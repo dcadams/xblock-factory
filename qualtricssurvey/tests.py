@@ -1,50 +1,56 @@
-import unittest
 import mock
+import unittest
 
-from xblock.field_data import DictFieldData
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from xblock.field_data import DictFieldData
+
+from qualtricssurvey import QualtricsSurvey
 
 
 class QualtricsSurveyXblockTests(unittest.TestCase):
 
-    def setUp(self):
-        self.course_id = SlashSeparatedCourseKey.from_deprecated_string('foo/bar/baz')
-        self.runtime = mock.Mock(course_id=self.course_id)
-        self.scope_ids = mock.Mock()
+    def make_an_xblock(self, **kw):
 
-    def make_one(self, **kw):
+        course_id = SlashSeparatedCourseKey('foo', 'bar', 'baz')
+        runtime = mock.Mock(course_id=course_id)
+        scope_ids = mock.Mock()
 
-        from qualtricssurvey import QualtricsSurvey as cls
         field_data = DictFieldData(kw)
-        block = cls(self.runtime, field_data, self.scope_ids)
-        block.xmodule_runtime = self.runtime
-        return block
+        xblock = QualtricsSurvey(runtime, field_data, scope_ids)
+        xblock.xmodule_runtime = runtime
+        return xblock
 
     def test_student_view(self):
+        """
+        Checks the student view with param_name but without anonymous_user_id.
+        """
 
-        block = self.make_one()    
-        fragment = block.student_view()
+        xblock = self.make_an_xblock()    
+        fragment = xblock.student_view()
 
-        # Leaving out the anonymous_user_id part for now as it is going to change
-        url_frag = 'href="https://stanford.qualtrics.com/SE/?SID=1234&amp;a='
+        url_frag = 'href="https://stanford.qualtrics.com/SE/?SID=Enter your survey ID here.&amp;a='
         self.assertIn(url_frag, fragment.content)
         url_frag = '>" target="_blank">click here'
         self.assertIn(url_frag, fragment.content)
 
-    def test_student_view_no_paramname(self):
+    def test_student_view_no_param_name(self):
+        """
+        Checks the student view without param_name; user id part should be missing.
+        """
 
-        block = self.make_one(paramName='')
-        fragment = block.student_view()
+        xblock = self.make_an_xblock(param_name=None)
+        fragment = xblock.student_view()
 
-        # user id part should be missing
-        url = '"https://stanford.qualtrics.com/SE/?SID=1234" target="_blank">click here'
+        url = '"https://stanford.qualtrics.com/SE/?SID=Enter your survey ID here." target="_blank">click here'
         self.assertIn(url, fragment.content)
 
     def test_studio_view(self):
+        """
+        Checks studio view which should contain the source text with %%USER_ID%%.
+        """
 
-        block = self.make_one()
-        fragment = block.studio_view()
+        xblock = self.make_an_xblock()
+        fragment = xblock.studio_view()
 
-        # Should contain the source text with %%USER_ID%%
-        source_text = 'href="https://stanford.qualtrics.com/SE/?SID=1234&amp;amp;a=%%USER_ID%%" target="_blank"&gt;click here'
+        source_text = 'href="https://stanford.qualtrics.com/SE/?SID=Enter your survey ID here.&amp;amp;a=%%USER_ID%%" target="_blank"&gt;click here'
         self.assertIn(source_text, fragment.content)

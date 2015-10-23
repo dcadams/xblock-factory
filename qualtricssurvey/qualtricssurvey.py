@@ -16,23 +16,24 @@ class QualtricsSurvey(XBlock):
     Xblock for creating a Qualtrics survey.
     """
     display_name = String(
-        default="Qualtrics Survey",
+        default='Qualtrics Survey',
         scope=Scope.settings,
     )
     survey_id = String(
-        default="Enter your survey ID here.",
+        # Default provided by placeholder in edit.html
+        default='',
         scope=Scope.settings,
     )
     your_university = String(
-        default="stanford",
+        default='stanford',
         scope=Scope.settings,
     )                       
     link_text = String(
-        default="click here",
+        default='click here',
         scope=Scope.settings,
     )
     param_name = String(
-        default="a",
+        default='a',
         scope=Scope.settings,
     )
 
@@ -47,10 +48,10 @@ class QualtricsSurvey(XBlock):
         link_text = self.link_text
         param_name = self.param_name
 
-        anon_user_id = str(self.xmodule_runtime.anonymous_student_id)
+        anon_user_id = self.xmodule_runtime.anonymous_student_id
 
         # %%PARAM%% substitution only works in HTML components
-        # so it has to be done here for USER_ID
+        # so it has to be done here for ANON_USER_ID
         user_id_string = ""
         if param_name:
             user_id_string = ('&amp;{param_name}={anon_user_id}').format(
